@@ -113,29 +113,28 @@ function renderOutput(data){
 
 let html=""
 
-html+="<h3>Product Overview</h3>"+data.prd.product_overview
+if(data.prd){
+html+="<h3>PRD</h3><pre>"+JSON.stringify(data.prd,null,2)+"</pre>"
+}
 
-html+="<h3>User Stories</h3>"
+if(data.assumptions){
+html+="<h3>Assumptions</h3><pre>"+JSON.stringify(data.assumptions,null,2)+"</pre>"
+}
 
-data.user_stories.forEach(s=>{
-html+="<p>"+s.story+"</p>"
-html+="<ul>"
-s.acceptance_criteria.forEach(c=>{
-html+="<li>"+c+"</li>"
-})
-html+="</ul>"
-})
+if(data.edge_cases){
+html+="<h3>Edge Cases</h3><pre>"+JSON.stringify(data.edge_cases,null,2)+"</pre>"
+}
 
-html+="<h3>Architecture</h3>"
-html+="<pre>"+JSON.stringify(data.architecture,null,2)+"</pre>"
+if(data.tests){
+html+="<h3>Tests</h3><pre>"+JSON.stringify(data.tests,null,2)+"</pre>"
+}
 
-html+="<h3>Edge Cases</h3>"
-html+="<pre>"+JSON.stringify(data.edge_cases,null,2)+"</pre>"
-
-html+="<h3>Tests</h3>"
-html+="<pre>"+JSON.stringify(data.tests,null,2)+"</pre>"
+if(data.action_required){
+html+="<h3>Decision Required</h3>"
+}
 
 document.getElementById("output").innerHTML=html
+
 }
 
 </script>
