@@ -55,15 +55,6 @@ Designed for future agents like Architecture, Security, and Critique.
   - generates a PRD and executes mock PRD-derived test checks.
   - if failures occur, response guidance asks for user inputs/decisions.
 
-- `POST /ux-flow`
-  - purpose-built UX flow endpoint:
-    1. give an idea
-    2. generate detailed PM stories (structured PRD)
-    3. ask for missed edge cases and show assumptions made
-    4. run PRD-derived tests
-    5. if failures occur, return `action_required=true` and decision options for user input
-  - accepts optional `edge_case_inputs` and `decision_notes` for follow-up turns.
-
 ## Environment Variables
 
 Create `.env` (optional):

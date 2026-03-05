@@ -86,19 +86,3 @@ class PRDTestResponse(BaseModel):
     failed_tests: list[str]
     results: list[PRDTestResult]
     guidance: str
-
-
-class UXFlowRequest(UserInput):
-    decision_notes: str = ""
-    edge_case_inputs: list[str] = Field(default_factory=list)
-
-
-class UXFlowResponse(BaseModel):
-    stage: str
-    execution_pack: ExecutionPack
-    missed_edge_cases_prompt: list[str]
-    assumptions_made: list[str]
-    prd_tests: PRDTestResponse
-    action_required: bool
-    decision_options: list[str]
-    message_to_user: str

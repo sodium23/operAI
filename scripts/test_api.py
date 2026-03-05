@@ -63,32 +63,6 @@ def main() -> None:
     if pass_count != len(results):
         raise SystemExit(1)
 
-    ux_payload = {
-        "input_type": "text",
-        "input_text": "Build an AI copilot for roadmap planning and delivery decisions.",
-        "edge_case_inputs": ["missing dependency owners", "unclear rollback policy"],
-        "decision_notes": "Prioritize safe rollout over speed.",
-    }
-    ux_response = client.post("/ux-flow", json=ux_payload)
-    if ux_response.status_code != 200:
-        print(f"UX Flow: FAIL - status {ux_response.status_code}")
-        raise SystemExit(1)
-    ux_json = ux_response.json()
-    required_ux_keys = {
-        "stage",
-        "execution_pack",
-        "missed_edge_cases_prompt",
-        "assumptions_made",
-        "prd_tests",
-        "action_required",
-        "decision_options",
-        "message_to_user",
-    }
-    if set(ux_json.keys()) != required_ux_keys:
-        print("UX Flow: FAIL - invalid response keys")
-        raise SystemExit(1)
-    print("UX Flow: PASS - endpoint returns full interactive decision payload")
-
 
 if __name__ == "__main__":
     main()
