@@ -1,69 +1,168 @@
-from __future__ import annotations
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+import json
 
-from fastapi import FastAPI
+app = FastAPI()
 
-from app.agents.pm_agent import PMAgent
-from app.core.config import settings
-from app.models.schemas import GenerateResponse, PRDTestResponse, RefineRequest, RefineResponse, RefineIteration, UserInput
+templates = Jinja2Templates(directory="templates")
 
-app = FastAPI(title=settings.app_name)
-agent = PMAgent()
+
+SYSTEM_PROMPT = """
+You are a senior Product Manager and Product Designer.
+
+You generate extremely detailed product execution packs including:
+- PRD
+- User stories
+- Acceptance criteria
+- Architecture overview
+- Edge cases
+- Assumptions
+- Tests
+- Wireframes
+- React preview code
+
+Follow strict product management discipline.
+
+USER STORIES MUST FOLLOW THIS FORMAT:
+
+As a [type of user]
+I want to [perform an action]
+So that [achieve a goal]
+
+Each story must include acceptance criteria.
+
+Do NOT prescribe implementation details inside the story itself.
+
+Follow best practices for user-defined entities:
+- unique names
+- lowercase storage
+- no special characters
+- '-' and '_' allowed
+- enforce case-insensitive uniqueness
+
+When design or UI is required:
+Provide React code AND a preview link suggestion.
+
+Architecture must include:
+- system components
+- services
+- data flow
+- APIs
+- storage
+- scalability considerations
+"""
+
+
+@app.get("/", response_class=HTMLResponse)
+def home(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
 
 @app.get("/health")
-def health() -> dict:
-    return {
-        "status": "ok",
-        "backend": "FastAPI backend running",
-        "claude": "Claude (primary) connected" if (not settings.mock_llm and settings.claude_api_key) else "Claude (primary) mock mode",
+def health():
+    return {"status": "ok", "service": "OperAI backend running"}
+
+
+@app.post("/ux-flow")
+async def ux_flow(payload: dict):
+
+    idea = payload.get("input_text")
+
+    prd = {
+        "product_overview": f"Execution system generated for: {idea}",
+        "target_users": [
+            "product_managers",
+            "engineering_leads",
+            "startup_founders"
+        ],
+        "problem_statement": "Teams struggle to convert ideas into structured execution plans."
     }
 
+    user_stories = [
+        {
+            "story": "As a product manager I want to input a product idea so that I can automatically generate a structured PRD",
+            "acceptance_criteria": [
+                "User can input free-form product ideas",
+                "System generates a structured PRD",
+                "PRD includes stories, assumptions and tests"
+            ]
+        },
+        {
+            "story": "As an engineering lead I want the system to identify edge cases so that I can reduce implementation risks",
+            "acceptance_criteria": [
+                "Edge cases are generated automatically",
+                "Risks are highlighted",
+                "Missing assumptions are surfaced"
+            ]
+        }
+    ]
 
-@app.post("/generate-pack", response_model=GenerateResponse)
-async def generate_pack(payload: UserInput) -> GenerateResponse:
-    execution_pack = await agent.run(payload.input_text, payload.input_type)
-    return GenerateResponse(
-        message="PM Agent generating structured JSON",
-        execution_pack=execution_pack,
-    )
+    architecture = {
+        "components": [
+            "frontend_ui",
+            "pm_agent",
+            "evaluation_engine",
+            "governance_logger",
+            "llm_client"
+        ],
+        "data_flow": [
+            "user_input -> intent_parser",
+            "intent -> prompt_builder",
+            "prompt -> llm",
+            "llm -> result_parser",
+            "result -> evaluation_engine"
+        ]
+    }
 
+    edge_cases = [
+        "idea is too vague",
+        "conflicting requirements",
+        "missing user personas"
+    ]
 
-@app.post("/refine-until-stable", response_model=RefineResponse)
-async def refine_until_stable(payload: RefineRequest) -> RefineResponse:
-    threshold = payload.stability_threshold or settings.stability_threshold
-    max_iters = payload.max_iterations or settings.max_refinement_iterations
-    iterations = []
-    final_pack = None
+    assumptions = [
+        "user wants structured product output",
+        "system should detect missing requirements"
+    ]
 
-    for idx in range(1, max_iters + 1):
-        current_input = payload.input_text + f"\nRefinement iteration {idx}: increase specificity and reduce ambiguity."
-        final_pack = await agent.run(current_input, payload.input_type)
-        confidence = round((final_pack.evaluation.completeness_score + final_pack.evaluation.risk_confidence_score) / 2, 3)
-        iterations.append(
-            RefineIteration(
-                iteration=idx,
-                confidence=confidence,
-                changes_summary="Updated prompt with additional specificity and ambiguity reduction guidance.",
-            )
-        )
-        if confidence >= threshold:
-            return RefineResponse(
-                stable=True,
-                achieved_confidence=confidence,
-                iterations=iterations,
-                final_execution_pack=final_pack,
-            )
+    tests = [
+        "verify prd schema structure",
+        "validate acceptance criteria present",
+        "validate edge cases generated"
+    ]
 
-    assert final_pack is not None
-    return RefineResponse(
-        stable=False,
-        achieved_confidence=iterations[-1].confidence,
-        iterations=iterations,
-        final_execution_pack=final_pack,
-    )
+    wireframe = {
+        "description": "Simple product idea input UI",
+        "react_code": """
+import React, { useState } from \"react\";
 
+export default function OperAI() {
+  const [idea,setIdea] = useState(\"\");
 
-@app.post("/run-prd-tests", response_model=PRDTestResponse)
-async def run_prd_tests(payload: UserInput) -> PRDTestResponse:
-    pack = await agent.run(payload.input_text, payload.input_type)
-    return agent.run_prd_tests(pack.structured_prd)
+  return (
+    <div style={{padding:40}}>
+      <h1>OperAI</h1>
+      <textarea
+        placeholder=\"Describe your idea\"
+        value={idea}
+        onChange={(e)=>setIdea(e.target.value)}
+      />
+      <button>Generate Execution Pack</button>
+    </div>
+  );
+}
+"""
+    }
+
+    return {
+        "idea": idea,
+        "prd": prd,
+        "user_stories": user_stories,
+        "architecture": architecture,
+        "assumptions": assumptions,
+        "edge_cases": edge_cases,
+        "tests": tests,
+        "wireframe": wireframe,
+        "action_required": False
+    }
