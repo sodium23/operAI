@@ -1,9 +1,10 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from app.clarity import clarity_score, next_question
+from app.engine import generate_execution
 
 app = FastAPI()
-
 templates = Jinja2Templates(directory="templates")
 
 
@@ -12,38 +13,28 @@ def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
-@app.get("/health")
-def health():
-    return {"status": "ok", "service": "OperAI backend running"}
-
-
-@app.post("/ux-flow")
-async def ux_flow(payload: dict):
-    """
-    Simplified prototype flow
-    """
+@app.post("/operai")
+async def operai(payload: dict):
 
     idea = payload.get("input_text")
+    question_count = payload.get("question_count", 0)
 
-    response = {
-        "idea": idea,
-        "prd": {
-            "title": "Execution Plan",
-            "summary": f"Plan generated for: {idea}"
-        },
-        "assumptions": [
-            "Users want automated PRD generation",
-            "System needs structured output"
-        ],
-        "edge_cases": [
-            "Idea too vague",
-            "Multiple conflicting goals"
-        ],
-        "tests": [
-            "PRD structure valid",
-            "Edge cases detected"
-        ],
-        "action_required": False
+    score = clarity_score(idea)
+
+    if score < 4:
+        question = next_question(question_count)
+        if question:
+            return {
+                "mode": "clarification",
+                "question": question,
+                "question_count": question_count + 1
+            }
+        return {"mode": "insufficient_clarity"}
+
+    result = generate_execution(idea)
+
+    return {
+        "mode": "execution",
+        "human_readable": result["human_readable"],
+        "machine_schema": result["machine_schema"]
     }
-
-    return response
