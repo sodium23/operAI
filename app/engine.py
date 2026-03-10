@@ -7,27 +7,13 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 SYSTEM_PROMPT = """
 You are OperAIExecutionOS.
 
-Generate structured, concise, operator-grade execution blueprint.
-
 Return STRICT JSON with:
-
 {
-  "human_readable": { ... },
-  "machine_schema": { ... }
+  "human_readable": {...},
+  "machine_schema": {...}
 }
 
-Include:
-- Idea Interpretation
-- Market Reality
-- Moat Analysis
-- Confidence Score
-- Product Blueprint
-- PRD (strict user story format)
-- Architecture (first 100 users)
-- Security & Governance
-- 5-8 Critical Edge Cases (with severity + mitigation)
-- Validation Plan
-
+No markdown.
 JSON only.
 """
 
@@ -45,11 +31,16 @@ def generate_execution(idea: str):
 
     raw = response.choices[0].message.content
 
+    print("RAW LLM OUTPUT:", raw)
+
     try:
         parsed = json.loads(raw)
         return parsed
-    except:
+    except Exception as e:
         return {
-            "human_readable": {"error": "Invalid LLM response"},
+            "human_readable": {
+                "error": "LLM returned invalid JSON",
+                "raw_output": raw
+            },
             "machine_schema": {}
         }
