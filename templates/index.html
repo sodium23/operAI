@@ -1,140 +1,53 @@
 <!DOCTYPE html>
 <html>
 <head>
-
-<title>OperAI</title>
-
+<title>OperAIExecutionOS</title>
 <style>
-
-body{
-font-family:Arial;
-background:#f5f7fb;
-margin:0;
-padding:40px;
-}
-
-.container{
-max-width:900px;
-margin:auto;
-}
-
-textarea{
-width:100%;
-height:120px;
-padding:10px;
-font-size:16px;
-}
-
-button{
-margin-top:10px;
-padding:10px 18px;
-font-size:16px;
-background:#2563eb;
-color:white;
-border:none;
-border-radius:4px;
-cursor:pointer;
-}
-
-.section{
-background:white;
-margin-top:20px;
-padding:20px;
-border-radius:8px;
-}
-
-h2{
-margin-top:0;
-}
-
-pre{
-white-space:pre-wrap;
-}
-
+body { font-family: Arial; padding: 40px; background: #f4f6f8; }
+textarea { width: 100%; height: 120px; }
+button { padding: 10px 16px; margin-top: 10px; }
+pre { background: white; padding: 20px; }
 </style>
-
 </head>
-
 <body>
 
-<div class="container">
+<h1>OperAIExecutionOS</h1>
 
-<h1>OperAI – AI Execution OS</h1>
-
-<div class="section">
-
-<h2>Describe Your Idea</h2>
-
-<textarea id="idea" placeholder="Example: AI tool that converts product ideas into execution-ready plans"></textarea>
-
+<textarea id="idea" placeholder="Describe your idea"></textarea>
 <br>
+<button onclick="run()">Generate</button>
 
-<button onclick="runFlow()">Generate Execution Pack</button>
-
-</div>
-
-
-<div class="section">
-
-<h2>Execution Pack</h2>
-
-<div id="output">Waiting for input...</div>
-
-</div>
-
-</div>
+<pre id="output"></pre>
 
 <script>
 
-async function runFlow(){
+let questionCount = 0;
 
-const idea=document.getElementById("idea").value
+async function run() {
 
-document.getElementById("output").innerText="Generating..."
+    const idea = document.getElementById("idea").value;
 
-const response=await fetch("/ux-flow",{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-input_text:idea,
-input_type:"text"
-})
-})
+    const res = await fetch("/operai", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            input_text: idea,
+            question_count: questionCount
+        })
+    });
 
-const data=await response.json()
+    const data = await res.json();
 
-renderOutput(data)
+    if (data.mode === "clarification") {
+        questionCount = data.question_count;
+        document.getElementById("output").innerText = data.question;
+        return;
+    }
 
-}
-
-function renderOutput(data){
-
-let html=""
-
-if(data.prd){
-html+="<h3>PRD</h3><pre>"+JSON.stringify(data.prd,null,2)+"</pre>"
-}
-
-if(data.assumptions){
-html+="<h3>Assumptions</h3><pre>"+JSON.stringify(data.assumptions,null,2)+"</pre>"
-}
-
-if(data.edge_cases){
-html+="<h3>Edge Cases</h3><pre>"+JSON.stringify(data.edge_cases,null,2)+"</pre>"
-}
-
-if(data.tests){
-html+="<h3>Tests</h3><pre>"+JSON.stringify(data.tests,null,2)+"</pre>"
-}
-
-if(data.action_required){
-html+="<h3>Decision Required</h3>"
-}
-
-document.getElementById("output").innerHTML=html
-
+    if (data.mode === "execution") {
+        document.getElementById("output").innerText =
+            JSON.stringify(data.human_readable, null, 2);
+    }
 }
 
 </script>
