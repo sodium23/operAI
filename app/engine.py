@@ -63,14 +63,14 @@ def generate_execution(idea: str):
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            temperature=0.3,
-            response_format={"type": "json_object"},
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": f"Idea: {idea}"}
-            ]
-        )
+    model="gpt-4o-mini",
+    temperature=0.2,
+    response_format={"type": "json_object"},
+    messages=[
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": f"Idea: {idea}"}
+    ]
+)
 
         content = response.choices[0].message.content
         parsed = json.loads(content)
