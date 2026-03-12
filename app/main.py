@@ -33,12 +33,10 @@ def home(request: Request):
 @app.post("/operai")
 async def operai(payload: dict):
 
-  idea = payload.get("idea") or payload.get("input_text")
+    idea = payload.get("idea") or payload.get("input_text")
 
     if not idea:
-        return {
-            "error": "idea field missing"
-        }
+        return {"error": "idea field missing"}
 
     score = clarity_score(idea)
 
@@ -56,4 +54,3 @@ async def operai(payload: dict):
         "mode": "execution_ready",
         "machine_schema": result["machine_schema"]
     }
-
