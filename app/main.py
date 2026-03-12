@@ -5,15 +5,17 @@ from app.clarity import clarity_score, next_question
 from app.engine import generate_execution
 from fastapi.middleware.cors import CORSMiddleware
 
+app = FastAPI()
+
+# CORS for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # tighten later
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
 
