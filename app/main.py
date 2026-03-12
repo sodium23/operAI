@@ -5,7 +5,7 @@ from fastapi.templating import Jinja2Templates
 
 from app.clarity import clarity_score, next_question
 from app.engine import generate_execution
-from app.schemas import Blueprint
+from app.schema import Blueprint
 
 
 app = FastAPI()
