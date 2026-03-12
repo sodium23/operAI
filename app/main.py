@@ -1,46 +1,71 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
-from app.schemas import Blueprint
+from fastapi.templating import Jinja2Templates
 
 from app.clarity import clarity_score, next_question
 from app.engine import generate_execution
+from app.schemas import Blueprint
+
 
 app = FastAPI()
 
-# CORS MUST be right after app creation
-origins = [
-    "https://operai-frontend.vercel.app",
-    "http://localhost:3000",
-    "http://localhost:5173"
-]
+# ---------------------------
+# CORS
+# ---------------------------
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,   # don't use * with credentials
+    allow_origins=[
+        "https://operai-frontend.vercel.app",
+        "http://localhost:3000",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ---------------------------
+# Templates
+# ---------------------------
 
 templates = Jinja2Templates(directory="templates")
 
 
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request}
+    )
+
+
+# ---------------------------
+# OPTIONS handler (CORS preflight)
+# ---------------------------
+
+@app.options("/{path:path}")
+async def options_handler():
+    return Response(status_code=200)
+
+
+# ---------------------------
+# MAIN OPERAI ENDPOINT
+# ---------------------------
 
 @app.post("/operai")
 async def operai(payload: dict):
 
-    # Accept both formats from frontend
+    # accept both frontend formats
     idea = payload.get("idea") or payload.get("input_text")
 
     if not idea:
         return {"error": "idea field missing"}
 
-    # clarity check
+    # ---------------------------
+    # CLARITY CHECK
+    # ---------------------------
+
     score = clarity_score(idea)
 
     if score < 0.5:
@@ -51,123 +76,158 @@ async def operai(payload: dict):
             "next_question": question
         }
 
-    # generate execution blueprint
-result = generate_execution(idea)
+    # ---------------------------
+    # GENERATE EXECUTION PLAN
+    # ---------------------------
 
-raw = result["machine_schema"]
+    result = generate_execution(idea)
 
-blueprint = Blueprint(
-    idea_interpretation={
-        "summary": raw["idea_interpretation"].get("description", ""),
-        "coreValue": raw["moat_analysis"].get("unique_value_proposition", ""),
-        "targetUser": raw["market_reality"].get("target_market", ""),
-        "keyAssumptions": [
-            "Users trust automated compliance tools",
-            "Government APIs remain stable",
-            "Startups prefer automation over manual filing"
-        ]
-    },
+    raw = result.get("machine_schema", {})
 
-    market_reality={
-        "marketSize": raw["market_reality"].get("market_size", ""),
-        "competitors": [
-            {"name": "ClearTax", "strength": "Compliance ecosystem"},
-            {"name": "Quicko", "strength": "Automation workflows"}
-        ],
-        "trends": [
-            "Compliance digitization",
-            "Startup automation adoption",
-            "Government API integrations"
-        ],
-        "risks": [
-            {"risk": "Regulatory changes", "severity": "High"},
-            {"risk": "Trust barriers", "severity": "Medium"}
-        ]
-    },
+    # ---------------------------
+    # MAP AI OUTPUT → BLUEPRINT
+    # ---------------------------
 
-    moat_analysis={
-        "differentiators": [
-            raw["moat_analysis"].get("unique_value_proposition", "")
-        ],
-        "barriers": [
-            raw["moat_analysis"].get("barriers_to_entry", "")
-        ],
-        "sustainability": "Strong if compliance accuracy and trust remain high"
-    },
+    blueprint = Blueprint(
 
-    confidence_score={
-        "score": raw["confidence_score"].get("overall_confidence", 70),
-        "factors": [
-            {"factor": "Market demand", "impact": "positive"},
-            {"factor": "Regulatory complexity", "impact": "negative"}
-        ]
-    },
+        idea_interpretation={
+            "summary": raw.get("idea_interpretation", {}).get("description", ""),
+            "coreValue": raw.get("moat_analysis", {}).get(
+                "unique_value_proposition", ""
+            ),
+            "targetUser": raw.get("market_reality", {}).get(
+                "target_market", ""
+            ),
+            "keyAssumptions": [
+                "Users trust automated compliance tools",
+                "Government APIs remain stable",
+                "Startups prefer SaaS automation"
+            ]
+        },
 
-    product_blueprint={
-        "core_features": raw["product_blueprint"].get("core_features", [])
-    },
+        market_reality={
+            "marketSize": raw.get("market_reality", {}).get(
+                "market_size", ""
+            ),
+            "competitors": [
+                {"name": "ClearTax", "strength": "Compliance ecosystem"},
+                {"name": "Quicko", "strength": "Automated tax workflows"}
+            ],
+            "trends": [
+                "Compliance digitization",
+                "Startup automation adoption",
+                "Government API integrations"
+            ],
+            "risks": [
+                {"risk": "Regulatory changes", "severity": "High"},
+                {"risk": "Trust barriers", "severity": "Medium"}
+            ]
+        },
 
-    prd={
-        "stories": raw["prd"].get("user_stories", [])
-    },
+        moat_analysis={
+            "differentiators": [
+                raw.get("moat_analysis", {}).get(
+                    "unique_value_proposition", ""
+                )
+            ],
+            "barriers": [
+                raw.get("moat_analysis", {}).get(
+                    "barriers_to_entry", ""
+                )
+            ],
+            "sustainability":
+                "Strong if compliance accuracy and trust remain high"
+        },
 
-    architecture={
-        "components": [
-            {"name": "Frontend Dashboard", "description": "User interface"},
-            {"name": "Tax Engine", "description": "Tax calculation system"},
-            {"name": "Compliance Connector", "description": "Government API integration"}
-        ],
-        "dataFlow": [
-            "User uploads financial data",
-            "System validates files",
-            "Tax engine calculates liabilities",
-            "User reviews filing"
-        ],
-        "scaleTriggers": [
-            "10k startups",
-            "Peak filing season"
-        ]
-    },
+        confidence_score={
+            "score": raw.get("confidence_score", {}).get(
+                "overall_confidence", 70
+            ),
+            "factors": [
+                {"factor": "Market demand", "impact": "positive"},
+                {"factor": "Regulatory complexity", "impact": "negative"}
+            ]
+        },
 
-    security={
-        "considerations": [
-            "Encrypted financial storage",
-            "Secure document access"
-        ],
-        "compliance": [
-            "Indian IT Act",
-            "GST compliance requirements"
-        ],
-        "governance": [
-            "Audit logs",
-            "Access monitoring"
-        ]
-    },
+        product_blueprint={
+            "core_features": raw.get(
+                "product_blueprint", {}
+            ).get("core_features", [])
+        },
 
-    edge_cases=[],
+        prd={
+            "stories": raw.get("prd", {}).get("user_stories", [])
+        },
 
-    validation={
-        "experiments": [
-            {
-                "experiment": "Pilot with 5 startups",
-                "metric": "Automated filing success rate",
-                "timeline": "4 weeks"
-            }
-        ],
-        "successCriteria": [
-            "80% automated filing success",
-            "Founders complete filings without CA"
-        ]
+        architecture={
+            "components": [
+                {
+                    "name": "Frontend Dashboard",
+                    "description": "User interface for founders"
+                },
+                {
+                    "name": "Tax Engine",
+                    "description": "Core tax calculation system"
+                },
+                {
+                    "name": "Compliance API Connector",
+                    "description": "Integration with GST APIs"
+                },
+                {
+                    "name": "Secure Storage",
+                    "description": "Encrypted financial storage"
+                }
+            ],
+            "dataFlow": [
+                "User uploads financial data",
+                "System validates files",
+                "Tax engine calculates liabilities",
+                "User reviews filing"
+            ],
+            "scaleTriggers": [
+                "10k startups onboarded",
+                "Peak filing seasons"
+            ]
+        },
+
+        security={
+            "considerations": [
+                "End-to-end encryption",
+                "Secure financial storage"
+            ],
+            "compliance": [
+                "Indian IT Act",
+                "GST compliance guidelines"
+            ],
+            "governance": [
+                "Audit logs",
+                "Access monitoring"
+            ]
+        },
+
+        edge_cases=[],
+
+        validation={
+            "experiments": [
+                {
+                    "experiment": "Pilot with 5 startups",
+                    "metric": "Automated filing success rate",
+                    "timeline": "4 weeks"
+                }
+            ],
+            "successCriteria": [
+                "80% automated filing success",
+                "Founders complete filings without CA"
+            ]
+        }
+
+    )
+
+    # ---------------------------
+    # RETURN FINAL SCHEMA
+    # ---------------------------
+
+    return {
+        "mode": "execution_ready",
+        "machine_schema": blueprint.dict()
     }
-)
-
-return {
-    "mode": "execution_ready",
-    "machine_schema": blueprint.dict()
-}
-
-from fastapi import Response
-
-@app.options("/{path:path}")
-async def options_handler():
-    return Response(status_code=200)
