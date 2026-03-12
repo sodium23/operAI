@@ -26,24 +26,23 @@ def home(request: Request):
 
 @app.post("/operai")
 async def operai(payload: dict):
+    idea = payload.get("idea")
 
-    idea = payload.get("input_text")
-    question_count = payload.get("question_count", 0)
-
+    # check clarity
     score = clarity_score(idea)
 
-    if score < 4:
-        question = next_question(question_count)
-        if question:
-            return {
-                "mode": "clarification",
-                "question": question,
-                "question_count": question_count + 1
-            }
-        return {"mode": "insufficient_clarity"}
+    if score < 0.5:
+        question = next_question(idea)
+        return {
+            "mode": "insufficient_clarity",
+            "clarity_score": score,
+            "next_question": question
+        }
 
+    # generate execution plan
+    result = generate_execution(idea)
 
-
-result = generate_execution(idea)
-
-return result["machine_schema"]
+    return {
+        "mode": "execution_ready",
+        "machine_schema": result["machine_schema"]
+    }
