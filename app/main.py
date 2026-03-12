@@ -33,7 +33,7 @@ def home(request: Request):
 @app.post("/operai")
 async def operai(payload: dict):
 
-    idea = payload.get("idea")
+  idea = payload.get("idea") or payload.get("input_text")
 
     if not idea:
         return {
