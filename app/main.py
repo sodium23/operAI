@@ -25,6 +25,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # ---------------------------
 # Templates
 # ---------------------------
@@ -56,8 +57,10 @@ async def options_handler():
 @app.post("/operai")
 async def operai(payload: dict):
 
-    # accept both frontend formats
-    idea = payload.get("idea") or payload.get("input_text")
+    try:
+
+        # accept both frontend formats
+        idea = payload.get("idea") or payload.get("input_text")
 
     if not idea:
         return {"error": "idea field missing"}
@@ -227,7 +230,8 @@ async def operai(payload: dict):
     # RETURN FINAL SCHEMA
     # ---------------------------
 
-    return {
-        "mode": "execution_ready",
-        "machine_schema": blueprint.dict()
-    }
+    except Exception as e:
+        return {
+            "mode": "error",
+            "message": str(e)
+        }
