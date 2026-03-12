@@ -57,3 +57,9 @@ async def operai(payload: dict):
         "mode": "execution_ready",
         "machine_schema": result.get("machine_schema", {})
     }
+
+from fastapi import Response
+
+@app.options("/{path:path}")
+async def options_handler():
+    return Response(status_code=200)
