@@ -42,10 +42,8 @@ async def operai(payload: dict):
             }
         return {"mode": "insufficient_clarity"}
 
-    result = generate_execution(idea)
 
-    return {
-        "mode": "execution",
-        "human_readable": result["human_readable"],
-        "machine_schema": result["machine_schema"]
-    }
+
+result = generate_execution(idea)
+
+return result["machine_schema"]
