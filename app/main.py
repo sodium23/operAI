@@ -1,16 +1,23 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
+
 from app.clarity import clarity_score, next_question
 from app.engine import generate_execution
-from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-# CORS for frontend
+# CORS MUST be right after app creation
+origins = [
+    "https://operai-frontend.vercel.app",
+    "http://localhost:3000",
+    "http://localhost:5173"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,   # don't use * with credentials
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -28,7 +35,6 @@ def home(request: Request):
 async def operai(payload: dict):
     idea = payload.get("idea")
 
-    # check clarity
     score = clarity_score(idea)
 
     if score < 0.5:
@@ -39,7 +45,6 @@ async def operai(payload: dict):
             "next_question": question
         }
 
-    # generate execution plan
     result = generate_execution(idea)
 
     return {
