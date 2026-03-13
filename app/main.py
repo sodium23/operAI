@@ -7,7 +7,6 @@ from app.clarity import clarity_score, next_question
 from app.engine import generate_execution
 from app.schema import Blueprint
 
-
 app = FastAPI()
 
 # ---------------------------
@@ -24,7 +23,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 # ---------------------------
 # Templates
@@ -79,50 +77,50 @@ async def operai(payload: dict):
         raw = result.get("machine_schema", {})
 
         # ---------------------------
-# FIX PRD STORIES FORMAT
-# ---------------------------
+        # FIX PRD STORIES FORMAT
+        # ---------------------------
 
-stories_raw = raw.get("prd", {}).get("user_stories", [])
+        stories_raw = raw.get("prd", {}).get("user_stories", [])
+        stories = []
 
-stories = []
+        for i, story in enumerate(stories_raw):
 
-for i, story in enumerate(stories_raw):
+            if isinstance(story, dict) and "user" in story:
 
-    if isinstance(story, dict) and "user" in story:
+                text = story["user"]
 
-        text = story["user"]
+                stories.append({
+                    "id": f"US{i+1}",
+                    "title": f"User Story {i+1}",
+                    "persona": "Startup Founder",
+                    "want": text,
+                    "so": "automate tax filing and compliance",
+                    "criteria": [
+                        "System validates financial data",
+                        "System calculates taxes correctly",
+                        "User can download filing documents"
+                    ]
+                })
 
-        stories.append({
-            "id": f"US{i+1}",
-            "title": f"User Story {i+1}",
-            "persona": "Startup Founder",
-            "want": text,
-            "so": "automate tax filing and compliance",
-            "criteria": [
-                "System validates financial data",
-                "System calculates taxes correctly",
-                "User can download filing documents"
-            ]
-        })
+            else:
 
-    else:
-
-        stories.append({
-            "id": story.get("id", f"US{i+1}"),
-            "title": story.get("title", f"User Story {i+1}"),
-            "persona": story.get("persona", "Startup Founder"),
-            "want": story.get("want", ""),
-            "so": story.get("so", "automate tax filing and compliance"),
-            "criteria": story.get(
-                "criteria",
-                [
-                    "System validates financial data",
-                    "System calculates taxes correctly"
-                ]
-            )
-        })
+                stories.append({
+                    "id": story.get("id", f"US{i+1}"),
+                    "title": story.get("title", f"User Story {i+1}"),
+                    "persona": story.get("persona", "Startup Founder"),
+                    "want": story.get("want", ""),
+                    "so": story.get("so", "automate tax filing and compliance"),
+                    "criteria": story.get(
+                        "criteria",
+                        [
+                            "System validates financial data",
+                            "System calculates taxes correctly"
+                        ]
+                    )
+                })
 
         blueprint = Blueprint(
+
             idea_interpretation={
                 "summary": raw.get("idea_interpretation", {}).get("description", ""),
                 "coreValue": raw.get("moat_analysis", {}).get("unique_value_proposition", ""),
@@ -133,6 +131,7 @@ for i, story in enumerate(stories_raw):
                     "Startups prefer SaaS automation"
                 ]
             },
+
             market_reality={
                 "marketSize": raw.get("market_reality", {}).get("market_size", ""),
                 "competitors": [
@@ -149,6 +148,7 @@ for i, story in enumerate(stories_raw):
                     {"risk": "Trust barriers", "severity": "Medium"}
                 ]
             },
+
             moat_analysis={
                 "differentiators": [
                     raw.get("moat_analysis", {}).get("unique_value_proposition", "")
@@ -158,6 +158,7 @@ for i, story in enumerate(stories_raw):
                 ],
                 "sustainability": "Strong if compliance accuracy and trust remain high"
             },
+
             confidence_score={
                 "score": raw.get("confidence_score", {}).get("overall_confidence", 70),
                 "factors": [
@@ -165,12 +166,15 @@ for i, story in enumerate(stories_raw):
                     {"factor": "Regulatory complexity", "impact": "negative"}
                 ]
             },
+
             product_blueprint={
                 "core_features": raw.get("product_blueprint", {}).get("core_features", [])
             },
+
             prd={
-    "stories": stories
-},
+                "stories": stories
+            },
+
             architecture={
                 "components": [
                     {"name": "Frontend Dashboard", "description": "User interface"},
@@ -189,6 +193,7 @@ for i, story in enumerate(stories_raw):
                     "Peak filing seasons"
                 ]
             },
+
             security={
                 "considerations": [
                     "End-to-end encryption",
@@ -203,7 +208,9 @@ for i, story in enumerate(stories_raw):
                     "Access monitoring"
                 ]
             },
+
             edge_cases=[],
+
             validation={
                 "experiments": [
                     {
@@ -217,6 +224,7 @@ for i, story in enumerate(stories_raw):
                     "Founders complete filings without CA"
                 ]
             }
+
         )
 
         return {
