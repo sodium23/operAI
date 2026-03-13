@@ -78,6 +78,50 @@ async def operai(payload: dict):
 
         raw = result.get("machine_schema", {})
 
+        # ---------------------------
+# FIX PRD STORIES FORMAT
+# ---------------------------
+
+stories_raw = raw.get("prd", {}).get("user_stories", [])
+
+stories = []
+
+for i, story in enumerate(stories_raw):
+
+    if isinstance(story, dict) and "user" in story:
+
+        text = story["user"]
+
+        stories.append({
+            "id": f"US{i+1}",
+            "title": f"User Story {i+1}",
+            "persona": "Startup Founder",
+            "want": text,
+            "so": "automate tax filing and compliance",
+            "criteria": [
+                "System validates financial data",
+                "System calculates taxes correctly",
+                "User can download filing documents"
+            ]
+        })
+
+    else:
+
+        stories.append({
+            "id": story.get("id", f"US{i+1}"),
+            "title": story.get("title", f"User Story {i+1}"),
+            "persona": story.get("persona", "Startup Founder"),
+            "want": story.get("want", ""),
+            "so": story.get("so", "automate tax filing and compliance"),
+            "criteria": story.get(
+                "criteria",
+                [
+                    "System validates financial data",
+                    "System calculates taxes correctly"
+                ]
+            )
+        })
+
         blueprint = Blueprint(
             idea_interpretation={
                 "summary": raw.get("idea_interpretation", {}).get("description", ""),
@@ -125,8 +169,8 @@ async def operai(payload: dict):
                 "core_features": raw.get("product_blueprint", {}).get("core_features", [])
             },
             prd={
-                "stories": raw.get("prd", {}).get("user_stories", [])
-            },
+    "stories": stories
+},
             architecture={
                 "components": [
                     {"name": "Frontend Dashboard", "description": "User interface"},
