@@ -98,7 +98,9 @@ for i, story in enumerate(stories_raw):
         "persona": story.get("persona", raw.get("market_reality", {}).get("target_market", "User")),
         "want": story.get("want") or story.get("user", ""),
         "so": story.get("so", "achieve their goal effectively"),
-        "criteria": story.get("criteria", [])
+       "criteria": story.get("criteria") or [
+    f"User can successfully complete: {story.get('want', '')}"
+]
     })
 
 
