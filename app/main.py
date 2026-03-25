@@ -68,7 +68,7 @@ def ensure_dict(value):
 
 
 def call_gemini_safety_chat(user_message: str):
-    api_key = os.getenv("GEMINI_API_KEY")
+    api_key = AIzaSyCIKfdiMLLj28bym_3egw3gFniLa8r-TTs
 
     if not api_key:
         return {
