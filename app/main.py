@@ -114,67 +114,107 @@ async def operai(payload: dict):
                 ]
             })
 
-        # ✅ FIXED: inside try
-        mr = raw.get("market_reality", {})
-        ma = raw.get("moat_analysis", {})
 
-        blueprint = Blueprint(
+        # ---------------------------
+# SAFE HELPERS (add once above if not already present)
+# ---------------------------
 
-            idea_interpretation={
-                "summary": raw.get("idea_interpretation", {}).get("description", ""),
-                "coreValue": raw.get("moat_analysis", {}).get("unique_value_proposition", ""),
-                "targetUser": raw.get("market_reality", {}).get("target_market", ""),
-                "keyAssumptions": raw.get("idea_interpretation", {}).get("assumptions", [])
-            },
+def ensure_list(value):
+    if isinstance(value, list):
+        return value
+    if value:
+        return [value]
+    return []
 
-            market_reality={
-                "marketSize": mr.get("market_size", ""),
-                "competitors": [
-                    c if isinstance(c, dict) else {"name": c, "strength": ""}
-                    for c in ensure_list(mr.get("competitors"))
-                ],
-                "trends": ensure_list(mr.get("trends")),
-                "risks": ensure_list(mr.get("risks"))
-            },
+def ensure_dict(value):
+    return value if isinstance(value, dict) else {}
 
-            moat_analysis={
-               "differentiators": ensure_list(ma.get("differentiators")),
-                "barriers": ensure_list(ma.get("barriers_to_entry")),
-                "sustainability": ma.get("sustainability", "")
-            },
 
-            confidence_score={
-                "score": raw.get("confidence_score", {}).get("overall_confidence", 0),
-                "factors": raw.get("confidence_score", {}).get("factors", [])
-            },
+# ---------------------------
+# NORMALIZATION
+# ---------------------------
 
-            product_blueprint={
-                "core_features": raw.get("product_blueprint", {}).get("core_features", [])
-            },
+mr = ensure_dict(raw.get("market_reality"))
+ma = ensure_dict(raw.get("moat_analysis"))
+ii = ensure_dict(raw.get("idea_interpretation"))
+cs = ensure_dict(raw.get("confidence_score"))
+pb = ensure_dict(raw.get("product_blueprint"))
+arch = ensure_dict(raw.get("architecture"))
+sec = ensure_dict(raw.get("security"))
+val = ensure_dict(raw.get("validation"))
 
-            prd={
-                "stories": stories
-            },
 
-            architecture={
-                "components": raw.get("architecture", {}).get("components", []),
-                "dataFlow": raw.get("architecture", {}).get("data_flow", []),
-                "scaleTriggers": raw.get("architecture", {}).get("scale_triggers", [])
-            },
+# ---------------------------
+# BLUEPRINT
+# ---------------------------
 
-            security={
-                "considerations": raw.get("security", {}).get("considerations", []),
-                "compliance": raw.get("security", {}).get("compliance", []),
-                "governance": raw.get("security", {}).get("governance", [])
-            },
+blueprint = Blueprint(
 
-            edge_cases=raw.get("edge_cases", []),
+    idea_interpretation={
+        "summary": ii.get("description", ""),
+        "coreValue": ma.get("unique_value_proposition", ""),
+        "targetUser": mr.get("target_market", ""),
+        "keyAssumptions": ensure_list(ii.get("assumptions"))
+    },
 
-            validation={
-                "experiments": raw.get("validation", {}).get("experiments", []),
-                "successCriteria": raw.get("validation", {}).get("success_criteria", [])
-            }
-        )
+    market_reality={
+        "marketSize": mr.get("market_size", ""),
+        "competitors": [
+            c if isinstance(c, dict) else {"name": str(c), "strength": ""}
+            for c in ensure_list(mr.get("competitors"))
+            if c
+        ],
+        "trends": ensure_list(mr.get("trends")),
+        "risks": [
+            r if isinstance(r, dict) else {"risk": str(r), "severity": ""}
+            for r in ensure_list(mr.get("risks"))
+        ]
+    },
+
+    moat_analysis={
+        "differentiators": ensure_list(ma.get("differentiators")),
+        "barriers": ensure_list(ma.get("barriers_to_entry")),
+        "sustainability": ma.get("sustainability", "")
+    },
+
+    confidence_score={
+        "score": cs.get("overall_confidence", 0),
+        "factors": [
+            f if isinstance(f, dict) else {"factor": str(f), "impact": ""}
+            for f in ensure_list(cs.get("factors"))
+        ]
+    },
+
+    product_blueprint={
+        "core_features": ensure_list(pb.get("core_features"))
+    },
+
+    prd={
+        "stories": stories
+    },
+
+    architecture={
+        "components": ensure_list(arch.get("components")),
+        "dataFlow": ensure_list(arch.get("data_flow")),
+        "scaleTriggers": ensure_list(arch.get("scale_triggers"))
+    },
+
+    security={
+        "considerations": ensure_list(sec.get("considerations")),
+        "compliance": ensure_list(sec.get("compliance")),
+        "governance": ensure_list(sec.get("governance"))
+    },
+
+    edge_cases=ensure_list(raw.get("edge_cases")),
+
+    validation={
+        "experiments": [
+            e if isinstance(e, dict) else {"experiment": str(e), "metric": "", "timeline": ""}
+            for e in ensure_list(val.get("experiments"))
+        ],
+        "successCriteria": ensure_list(val.get("success_criteria"))
+    }
+)
 
         return {
             "mode": "execution_ready",
