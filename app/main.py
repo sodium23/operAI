@@ -113,13 +113,17 @@ async def operai(payload: dict):
                 "keyAssumptions": raw.get("idea_interpretation", {}).get("assumptions", [])
             },
 
-            market_reality={
-                "marketSize": raw.get("market_reality", {}).get("market_size", ""),
-                "competitors": [ c if isinstance(c, dict) else {"name": c, "strength": ""} for c in raw.get("market_reality", {}).get("competitors", [])
-                               ],
-                "trends": raw.get("market_reality", {}).get("trends", []),
-                "risks": raw.get("market_reality", {}).get("risks", [])
-            },
+            mr = raw.get("market_reality", {})
+
+market_reality = {
+    "marketSize": mr.get("market_size", ""),
+    "competitors": [
+        c if isinstance(c, dict) else {"name": c, "strength": ""}
+        for c in ensure_list(mr.get("competitors"))
+    ],
+    "trends": ensure_list(mr.get("trends")),
+    "risks": ensure_list(mr.get("risks"))
+}
 
             moat_analysis={
                 "differentiators": raw.get("moat_analysis", {}).get("differentiators", []),
