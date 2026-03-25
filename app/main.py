@@ -84,41 +84,23 @@ async def operai(payload: dict):
         stories_raw = raw.get("prd", {}).get("user_stories", [])
         stories = []
 
-        for i, story in enumerate(stories_raw):
+for i, story in enumerate(stories_raw):
 
-            if isinstance(story, dict) and "user" in story:
+    # Normalize input (handle string or dict)
+    if isinstance(story, str):
+        story = {
+            "want": story
+        }
 
-                text = story["user"]
+    stories.append({
+        "id": story.get("id", f"US{i+1}"),
+        "title": story.get("title", f"User Story {i+1}"),
+        "persona": story.get("persona", raw.get("market_reality", {}).get("target_market", "User")),
+        "want": story.get("want") or story.get("user", ""),
+        "so": story.get("so", "achieve their goal effectively"),
+        "criteria": story.get("criteria", [])
+    })
 
-                stories.append({
-                    "id": f"US{i+1}",
-                    "title": f"User Story {i+1}",
-                    "persona": "Startup Founder",
-                    "want": text,
-                    "so": "automate tax filing and compliance",
-                    "criteria": [
-                        "System validates financial data",
-                        "System calculates taxes correctly",
-                        "User can download filing documents"
-                    ]
-                })
-
-            else:
-
-                stories.append({
-                    "id": story.get("id", f"US{i+1}"),
-                    "title": story.get("title", f"User Story {i+1}"),
-                    "persona": story.get("persona", "Startup Founder"),
-                    "want": story.get("want", ""),
-                    "so": story.get("so", "automate tax filing and compliance"),
-                    "criteria": story.get(
-                        "criteria",
-                        [
-                            "System validates financial data",
-                            "System calculates taxes correctly"
-                        ]
-                    )
-                })
 
 blueprint = Blueprint(
 
