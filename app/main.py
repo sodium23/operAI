@@ -138,7 +138,7 @@ async def operai(payload: dict):
             },
 
             moat_analysis={
-                "differentiators": ma.get("differentiators", []),
+               "differentiators": ensure_list(ma.get("differentiators")),
                 "barriers": ensure_list(ma.get("barriers_to_entry")),
                 "sustainability": ma.get("sustainability", "")
             },
