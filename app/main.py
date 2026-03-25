@@ -103,6 +103,9 @@ async def operai(payload: dict):
                 ]
             })
 
+mr = raw.get("market_reality", {})
+ma = raw.get("moat_analysis", {})
+        
         # ✅ ALSO INSIDE try
         blueprint = Blueprint(
 
@@ -113,27 +116,21 @@ async def operai(payload: dict):
                 "keyAssumptions": raw.get("idea_interpretation", {}).get("assumptions", [])
             },
 
-            mr = raw.get("market_reality", {})
+               market_reality={
+        "marketSize": mr.get("market_size", ""),
+        "competitors": [
+            c if isinstance(c, dict) else {"name": c, "strength": ""}
+            for c in ensure_list(mr.get("competitors"))
+        ],
+        "trends": ensure_list(mr.get("trends")),
+        "risks": ensure_list(mr.get("risks"))
+    },
 
-market_reality = {
-    "marketSize": mr.get("market_size", ""),
-    "competitors": [
-        c if isinstance(c, dict) else {"name": c, "strength": ""}
-        for c in ensure_list(mr.get("competitors"))
-    ],
-    "trends": ensure_list(mr.get("trends")),
-    "risks": ensure_list(mr.get("risks"))
-}
-
-            moat_analysis={
-                "differentiators": raw.get("moat_analysis", {}).get("differentiators", []),
-               "barriers": (
-    raw.get("moat_analysis", {}).get("barriers_to_entry", [])
-    if isinstance(raw.get("moat_analysis", {}).get("barriers_to_entry", []), list)
-    else [raw.get("moat_analysis", {}).get("barriers_to_entry", "")]
-),
-                "sustainability": raw.get("moat_analysis", {}).get("sustainability", "")
-            },
+    moat_analysis={
+        "differentiators": ma.get("differentiators", []),
+        "barriers": ensure_list(ma.get("barriers_to_entry")),
+        "sustainability": ma.get("sustainability", "")
+    },
 
             confidence_score={
                 "score": raw.get("confidence_score", {}).get("overall_confidence", 0),
