@@ -115,14 +115,19 @@ async def operai(payload: dict):
 
             market_reality={
                 "marketSize": raw.get("market_reality", {}).get("market_size", ""),
-                "competitors": raw.get("market_reality", {}).get("competitors", []),
+                "competitors": [ c if isinstance(c, dict) else {"name": c, "strength": ""} for c in raw.get("market_reality", {}).get("competitors", [])
+                               ],
                 "trends": raw.get("market_reality", {}).get("trends", []),
                 "risks": raw.get("market_reality", {}).get("risks", [])
             },
 
             moat_analysis={
                 "differentiators": raw.get("moat_analysis", {}).get("differentiators", []),
-                "barriers": raw.get("moat_analysis", {}).get("barriers_to_entry", []),
+               "barriers": (
+    raw.get("moat_analysis", {}).get("barriers_to_entry", [])
+    if isinstance(raw.get("moat_analysis", {}).get("barriers_to_entry", []), list)
+    else [raw.get("moat_analysis", {}).get("barriers_to_entry", "")]
+),
                 "sustainability": raw.get("moat_analysis", {}).get("sustainability", "")
             },
 
