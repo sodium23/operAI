@@ -120,113 +120,60 @@ async def operai(payload: dict):
                     )
                 })
 
-        blueprint = Blueprint(
+blueprint = Blueprint(
 
-            idea_interpretation={
-                "summary": raw.get("idea_interpretation", {}).get("description", ""),
-                "coreValue": raw.get("moat_analysis", {}).get("unique_value_proposition", ""),
-                "targetUser": raw.get("market_reality", {}).get("target_market", ""),
-                "keyAssumptions": [
-                    "Users trust automated compliance tools",
-                    "Government APIs remain stable",
-                    "Startups prefer SaaS automation"
-                ]
-            },
+    idea_interpretation={
+        "summary": raw.get("idea_interpretation", {}).get("description", ""),
+        "coreValue": raw.get("moat_analysis", {}).get("unique_value_proposition", ""),
+        "targetUser": raw.get("market_reality", {}).get("target_market", ""),
+        "keyAssumptions": raw.get("idea_interpretation", {}).get("assumptions", [])
+    },
 
-            market_reality={
-                "marketSize": raw.get("market_reality", {}).get("market_size", ""),
-                "competitors": [
-                    {"name": "ClearTax", "strength": "Compliance ecosystem"},
-                    {"name": "Quicko", "strength": "Automated tax workflows"}
-                ],
-                "trends": [
-                    "Compliance digitization",
-                    "Startup automation adoption",
-                    "Government API integrations"
-                ],
-                "risks": [
-                    {"risk": "Regulatory changes", "severity": "High"},
-                    {"risk": "Trust barriers", "severity": "Medium"}
-                ]
-            },
+    market_reality={
+        "marketSize": raw.get("market_reality", {}).get("market_size", ""),
+        "competitors": raw.get("market_reality", {}).get("competitors", []),
+        "trends": raw.get("market_reality", {}).get("trends", []),
+        "risks": raw.get("market_reality", {}).get("risks", [])
+    },
 
-            moat_analysis={
-                "differentiators": [
-                    raw.get("moat_analysis", {}).get("unique_value_proposition", "")
-                ],
-                "barriers": [
-                    raw.get("moat_analysis", {}).get("barriers_to_entry", "")
-                ],
-                "sustainability": "Strong if compliance accuracy and trust remain high"
-            },
+    moat_analysis={
+        "differentiators": raw.get("moat_analysis", {}).get("differentiators", []),
+        "barriers": raw.get("moat_analysis", {}).get("barriers_to_entry", []),
+        "sustainability": raw.get("moat_analysis", {}).get("sustainability", "")
+    },
 
-            confidence_score={
-                "score": raw.get("confidence_score", {}).get("overall_confidence", 70),
-                "factors": [
-                    {"factor": "Market demand", "impact": "positive"},
-                    {"factor": "Regulatory complexity", "impact": "negative"}
-                ]
-            },
+    confidence_score={
+        "score": raw.get("confidence_score", {}).get("overall_confidence", 0),
+        "factors": raw.get("confidence_score", {}).get("factors", [])
+    },
 
-            product_blueprint={
-                "core_features": raw.get("product_blueprint", {}).get("core_features", [])
-            },
+    product_blueprint={
+        "core_features": raw.get("product_blueprint", {}).get("core_features", [])
+    },
 
-            prd={
-                "stories": stories
-            },
+    prd={
+        "stories": stories
+    },
 
-            architecture={
-                "components": [
-                    {"name": "Frontend Dashboard", "description": "User interface"},
-                    {"name": "Tax Engine", "description": "Core tax calculation system"},
-                    {"name": "Compliance API Connector", "description": "Integration with GST APIs"},
-                    {"name": "Secure Storage", "description": "Encrypted financial storage"}
-                ],
-                "dataFlow": [
-                    "User uploads financial data",
-                    "System validates files",
-                    "Tax engine calculates liabilities",
-                    "User reviews filing"
-                ],
-                "scaleTriggers": [
-                    "10k startups onboarded",
-                    "Peak filing seasons"
-                ]
-            },
+    architecture={
+        "components": raw.get("architecture", {}).get("components", []),
+        "dataFlow": raw.get("architecture", {}).get("data_flow", []),
+        "scaleTriggers": raw.get("architecture", {}).get("scale_triggers", [])
+    },
 
-            security={
-                "considerations": [
-                    "End-to-end encryption",
-                    "Secure financial storage"
-                ],
-                "compliance": [
-                    "Indian IT Act",
-                    "GST compliance guidelines"
-                ],
-                "governance": [
-                    "Audit logs",
-                    "Access monitoring"
-                ]
-            },
+    security={
+        "considerations": raw.get("security", {}).get("considerations", []),
+        "compliance": raw.get("security", {}).get("compliance", []),
+        "governance": raw.get("security", {}).get("governance", [])
+    },
 
-            edge_cases=[],
+    edge_cases=raw.get("edge_cases", []),
 
-            validation={
-                "experiments": [
-                    {
-                        "experiment": "Pilot with 5 startups",
-                        "metric": "Automated filing success rate",
-                        "timeline": "4 weeks"
-                    }
-                ],
-                "successCriteria": [
-                    "80% automated filing success",
-                    "Founders complete filings without CA"
-                ]
-            }
-
-        )
+    validation={
+        "experiments": raw.get("validation", {}).get("experiments", []),
+        "successCriteria": raw.get("validation", {}).get("success_criteria", [])
+    }
+)
 
         return {
             "mode": "execution_ready",
