@@ -50,6 +50,18 @@ async def options_handler():
 
 
 # ---------------------------
+# HELPER
+# ---------------------------
+
+def ensure_list(value):
+    if isinstance(value, list):
+        return value
+    if value:
+        return [value]
+    return []
+
+
+# ---------------------------
 # MAIN OPERAI ENDPOINT
 # ---------------------------
 
@@ -83,7 +95,6 @@ async def operai(payload: dict):
         stories_raw = raw.get("prd", {}).get("user_stories", [])
         stories = []
 
-        # ✅ FIXED INDENTATION (inside try)
         for i, story in enumerate(stories_raw):
 
             if isinstance(story, str):
@@ -103,10 +114,10 @@ async def operai(payload: dict):
                 ]
             })
 
-mr = raw.get("market_reality", {})
-ma = raw.get("moat_analysis", {})
-        
-        # ✅ ALSO INSIDE try
+        # ✅ FIXED: inside try
+        mr = raw.get("market_reality", {})
+        ma = raw.get("moat_analysis", {})
+
         blueprint = Blueprint(
 
             idea_interpretation={
@@ -116,21 +127,21 @@ ma = raw.get("moat_analysis", {})
                 "keyAssumptions": raw.get("idea_interpretation", {}).get("assumptions", [])
             },
 
-               market_reality={
-        "marketSize": mr.get("market_size", ""),
-        "competitors": [
-            c if isinstance(c, dict) else {"name": c, "strength": ""}
-            for c in ensure_list(mr.get("competitors"))
-        ],
-        "trends": ensure_list(mr.get("trends")),
-        "risks": ensure_list(mr.get("risks"))
-    },
+            market_reality={
+                "marketSize": mr.get("market_size", ""),
+                "competitors": [
+                    c if isinstance(c, dict) else {"name": c, "strength": ""}
+                    for c in ensure_list(mr.get("competitors"))
+                ],
+                "trends": ensure_list(mr.get("trends")),
+                "risks": ensure_list(mr.get("risks"))
+            },
 
-    moat_analysis={
-        "differentiators": ma.get("differentiators", []),
-        "barriers": ensure_list(ma.get("barriers_to_entry")),
-        "sustainability": ma.get("sustainability", "")
-    },
+            moat_analysis={
+                "differentiators": ma.get("differentiators", []),
+                "barriers": ensure_list(ma.get("barriers_to_entry")),
+                "sustainability": ma.get("sustainability", "")
+            },
 
             confidence_score={
                 "score": raw.get("confidence_score", {}).get("overall_confidence", 0),
