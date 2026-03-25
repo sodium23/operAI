@@ -163,13 +163,36 @@ async def operai(payload: dict):
                 "sustainability": ma.get("sustainability", "")
             },
 
-            confidence_score={
-                "score": cs.get("overall_confidence", 0),
-                "factors": [
-                    f if isinstance(f, dict) else {"factor": str(f), "impact": ""}
-                    for f in ensure_list(cs.get("factors"))
-                ]
-            },
+           # FIX CONFIDENCE FACTORS
+raw_factors = cs.get("factors", [])
+
+normalized_factors = []
+
+if isinstance(raw_factors, dict):
+    # convert dict → list of {factor, impact}
+    for k, v in raw_factors.items():
+        normalized_factors.append({
+            "factor": str(k),
+            "impact": v
+        })
+
+elif isinstance(raw_factors, list):
+    for f in raw_factors:
+        if isinstance(f, dict):
+            normalized_factors.append({
+                "factor": f.get("factor", ""),
+                "impact": f.get("impact", 0)
+            })
+        else:
+            normalized_factors.append({
+                "factor": str(f),
+                "impact": 0
+            })
+
+confidence_score={
+    "score": cs.get("overall_confidence", 0),
+    "factors": normalized_factors
+},
 
             product_blueprint={
                 "core_features": ensure_list(pb.get("core_features"))
