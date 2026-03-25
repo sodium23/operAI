@@ -40,10 +40,6 @@ def home(request: Request):
     )
 
 
-# ---------------------------
-# OPTIONS handler (CORS preflight)
-# ---------------------------
-
 @app.options("/{path:path}")
 async def options_handler():
     return Response(status_code=200)
@@ -131,6 +127,33 @@ async def operai(payload: dict):
         val = ensure_dict(raw.get("validation"))
 
         # ---------------------------
+        # FIX CONFIDENCE FACTORS (IMPORTANT FIX)
+        # ---------------------------
+
+        raw_factors = cs.get("factors", [])
+        normalized_factors = []
+
+        if isinstance(raw_factors, dict):
+            for k, v in raw_factors.items():
+                normalized_factors.append({
+                    "factor": str(k),
+                    "impact": v
+                })
+
+        elif isinstance(raw_factors, list):
+            for f in raw_factors:
+                if isinstance(f, dict):
+                    normalized_factors.append({
+                        "factor": f.get("factor", ""),
+                        "impact": f.get("impact", 0)
+                    })
+                else:
+                    normalized_factors.append({
+                        "factor": str(f),
+                        "impact": 0
+                    })
+
+        # ---------------------------
         # BLUEPRINT
         # ---------------------------
 
@@ -163,36 +186,10 @@ async def operai(payload: dict):
                 "sustainability": ma.get("sustainability", "")
             },
 
-           # FIX CONFIDENCE FACTORS
-raw_factors = cs.get("factors", [])
-
-normalized_factors = []
-
-if isinstance(raw_factors, dict):
-    # convert dict → list of {factor, impact}
-    for k, v in raw_factors.items():
-        normalized_factors.append({
-            "factor": str(k),
-            "impact": v
-        })
-
-elif isinstance(raw_factors, list):
-    for f in raw_factors:
-        if isinstance(f, dict):
-            normalized_factors.append({
-                "factor": f.get("factor", ""),
-                "impact": f.get("impact", 0)
-            })
-        else:
-            normalized_factors.append({
-                "factor": str(f),
-                "impact": 0
-            })
-
-confidence_score={
-    "score": cs.get("overall_confidence", 0),
-    "factors": normalized_factors
-},
+            confidence_score={
+                "score": cs.get("overall_confidence", 0),
+                "factors": normalized_factors
+            },
 
             product_blueprint={
                 "core_features": ensure_list(pb.get("core_features"))
