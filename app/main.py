@@ -1,3 +1,58 @@
+from fastapi import FastAPI, Request, Response
+from fastapi.responses import HTMLResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.templating import Jinja2Templates
+
+from app.clarity import clarity_score, next_question
+from app.engine import generate_execution
+from app.schema import Blueprint
+
+app = FastAPI()
+
+# ---------------------------
+# CORS
+# ---------------------------
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://operai-frontend.vercel.app",
+        "http://localhost:3000",
+        "https://operai-frontend-niyatiagrawal2901-4478s-projects.vercel.app"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ---------------------------
+# Templates
+# ---------------------------
+
+templates = Jinja2Templates(directory="templates")
+
+
+@app.get("/", response_class=HTMLResponse)
+def home(request: Request):
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request}
+    )
+
+
+# ---------------------------
+# OPTIONS handler (CORS preflight)
+# ---------------------------
+
+@app.options("/{path:path}")
+async def options_handler():
+    return Response(status_code=200)
+
+
+# ---------------------------
+# MAIN OPERAI ENDPOINT
+# ---------------------------
+
 @app.post("/operai")
 async def operai(payload: dict):
 
