@@ -1,0 +1,175 @@
+:root {
+  --bg: #f4f6f8;
+  --card: #ffffff;
+  --text: #111827;
+  --muted: #6b7280;
+  --primary: #111827;
+  --accent: #1d4ed8;
+  --border: #e5e7eb;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.app {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 14px;
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.topbar p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.tabs {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.tab {
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 999px;
+  padding: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tab.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.screen {
+  display: none;
+  margin-top: 12px;
+}
+
+.screen.active {
+  display: block;
+}
+
+.chat-thread,
+.scenario-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.chat-thread {
+  min-height: 320px;
+  max-height: 56vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bubble {
+  border-radius: 12px;
+  padding: 10px 11px;
+  max-width: 90%;
+  line-height: 1.4;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.bubble.user {
+  background: #dbeafe;
+  align-self: flex-end;
+}
+
+.bubble.ai {
+  background: #f3f4f6;
+  align-self: flex-start;
+}
+
+.chat-form {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.chat-form input {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 0.95rem;
+}
+
+.chat-form button,
+.option {
+  border: none;
+  background: var(--accent);
+  color: white;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.scenario-card h2 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+}
+
+.scenario-card p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.options {
+  margin-top: 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.option {
+  width: 100%;
+  text-align: left;
+  background: #0f172a;
+}
+
+.answer {
+  margin-top: 12px;
+  border-left: 4px solid var(--accent);
+  background: #eff6ff;
+  padding: 10px;
+  border-radius: 8px;
+  line-height: 1.45;
+}
+
+.hidden {
+  display: none;
+}
+
+@media (max-width: 420px) {
+  .chat-form {
+    grid-template-columns: 1fr;
+  }
+
+  .chat-form button {
+    width: 100%;
+  }
+}

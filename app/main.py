@@ -1,6 +1,11 @@
+import json
+import os
+from urllib import error, request
+
 from fastapi import FastAPI, Request, Response
-from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from app.clarity import clarity_score, next_question
@@ -26,16 +31,17 @@ app.add_middleware(
 )
 
 # ---------------------------
-# Templates
+# Templates and static files
 # ---------------------------
 
 templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
     return templates.TemplateResponse(
-        "index.html",
+        "safercircle.html",
         {"request": request}
     )
 
@@ -56,8 +62,111 @@ def ensure_list(value):
         return [value]
     return []
 
+
 def ensure_dict(value):
     return value if isinstance(value, dict) else {}
+
+
+def call_gemini_safety_chat(user_message: str):
+    api_key = os.getenv("GEMINI_API_KEY")
+
+    if not api_key:
+        return {
+            "ok": False,
+            "reply": "Set GEMINI_API_KEY first. No excuses.",
+            "error": "GEMINI_API_KEY missing"
+        }
+
+    endpoint = (
+        "https://generativelanguage.googleapis.com/v1beta/models/"
+        f"gemini-1.5-flash:generateContent?key={api_key}"
+    )
+
+    system_tone = (
+        "You are SaferCircle's advisor. Sound like a tough older sister: "
+        "direct, strategic, and no sugarcoating. Give options and consequences. "
+        "Keep replies actionable and concise."
+    )
+
+    payload = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": system_tone},
+                    {"text": f"User message: {user_message}"}
+                ]
+            }
+        ],
+        "generationConfig": {
+            "temperature": 0.6,
+            "maxOutputTokens": 250
+        }
+    }
+
+    req = request.Request(
+        endpoint,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method="POST"
+    )
+
+    try:
+        with request.urlopen(req, timeout=25) as response:
+            data = json.loads(response.read().decode("utf-8"))
+
+        candidates = data.get("candidates", [])
+        if not candidates:
+            return {
+                "ok": False,
+                "reply": "Gemini gave nothing back. Ask again, clearer.",
+                "error": "No candidates in Gemini response"
+            }
+
+        parts = candidates[0].get("content", {}).get("parts", [])
+        text = "\n".join(part.get("text", "") for part in parts if part.get("text"))
+
+        if not text:
+            return {
+                "ok": False,
+                "reply": "Response came back empty. Tighten your prompt.",
+                "error": "Gemini response text missing"
+            }
+
+        return {
+            "ok": True,
+            "reply": text
+        }
+
+    except error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="ignore")
+        return {
+            "ok": False,
+            "reply": "Gemini call failed. Check your key and quota.",
+            "error": f"HTTP {exc.code}: {body}"
+        }
+    except Exception as exc:
+        return {
+            "ok": False,
+            "reply": "Network or config issue. Fix it and retry.",
+            "error": str(exc)
+        }
+
+
+# ---------------------------
+# SAFERCIRCLE ENDPOINT
+# ---------------------------
+
+@app.post("/safercircle/chat")
+async def safercircle_chat(payload: dict):
+    message = (payload.get("message") or "").strip()
+    if not message:
+        return {
+            "ok": False,
+            "reply": "Say what happened, clearly.",
+            "error": "message missing"
+        }
+
+    return call_gemini_safety_chat(message)
 
 
 # ---------------------------
@@ -227,8 +336,8 @@ async def operai(payload: dict):
             "machine_schema": blueprint.dict()
         }
 
-    except Exception as e:
+    except Exception as exc:
         return {
             "mode": "error",
-            "message": str(e)
+            "message": str(exc)
         }
