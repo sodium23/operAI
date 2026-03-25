@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SaferCircle Beta</title>
+  <link rel="stylesheet" href="/static/safercircle.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <h1>SaferCircle Beta</h1>
+      <p>Reality checks, not fairy tales.</p>
+    </header>
+
+    <nav class="tabs" aria-label="Main tabs">
+      <button class="tab active" data-screen="chatScreen">Chat</button>
+      <button class="tab" data-screen="scenarioScreen">Scenario</button>
+    </nav>
+
+    <section id="chatScreen" class="screen active" aria-label="Chat screen">
+      <div id="chatThread" class="chat-thread">
+        <article class="bubble ai">
+          <p>Start talking. Keep it real and specific.</p>
+        </article>
+      </div>
+
+      <form id="chatForm" class="chat-form">
+        <input
+          id="chatInput"
+          type="text"
+          placeholder="What situation are you dealing with?"
+          autocomplete="off"
+          required
+        />
+        <button type="submit">Send</button>
+      </form>
+    </section>
+
+    <section id="scenarioScreen" class="screen" aria-label="Scenario screen">
+      <article class="scenario-card">
+        <h2>Scenario of the day</h2>
+        <p id="scenarioPrompt"></p>
+
+        <div id="scenarioOptions" class="options"></div>
+
+        <div id="scenarioAnswer" class="answer hidden" role="status" aria-live="polite"></div>
+      </article>
+    </section>
+  </main>
+
+  <script src="/static/safercircle.js"></script>
+</body>
+</html>
