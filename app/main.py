@@ -18,6 +18,7 @@ app.add_middleware(
     allow_origins=[
         "https://operai-frontend.vercel.app",
         "http://localhost:3000",
+        "https://operai-frontend-niyatiagrawal2901-4478s-projects.vercel.app"
     ],
     allow_credentials=True,
     allow_methods=["*"],
